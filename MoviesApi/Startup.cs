@@ -6,11 +6,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using MoviesApi.Data;
+using MoviesApi.Entities;
 
 namespace MoviesApi
 {
@@ -26,7 +29,20 @@ namespace MoviesApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<DataContext>(x =>{
+                x.UseSqlServer(Configuration.GetConnectionString("MyConnection"));
+            });
+            services.AddIdentity<ApplicationUser,ApplicationRole>(
+                option=>{
+                    option.Password.RequireDigit=true;
+                    option.Password.RequireLowercase=true;
+                    option.Password.RequireNonAlphanumeric=true;
+                    option.Password.RequiredUniqueChars=1;
+                    option.Password.RequireUppercase=true;
+                    option.Password.RequiredLength=6;
 
+                }
+            ).AddEntityFrameworkStores<DataContext>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
