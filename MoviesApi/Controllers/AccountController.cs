@@ -17,15 +17,18 @@ namespace MoviesApi.Controllers
 
     public class AccountController : applicationBaseContoller
     {
-        private DataContext _context { get; }
-        private UserManager<ApplicationUser> _userManager { get; }
-        public IConfiguration Config { get; }
-        public AccountController(DataContext context, UserManager<ApplicationUser> userManager, IConfiguration config)
+
+        private readonly DataContext _context;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IConfiguration Config;
+        public AccountController(DataContext context, UserManager<ApplicationUser> userManager,
+         IConfiguration config, SignInManager<ApplicationUser> signInManager)
         {
             this.Config = config;
             this._userManager = userManager;
             this._context = context;
-
+            this._signInManager = signInManager;
         }
 
         [Route("Register")]
@@ -40,10 +43,10 @@ namespace MoviesApi.Controllers
             {
 
 
-                if (!isValidEmail(registerdto.Email.ToLower()))
-                {
-                    return BadRequest("Not Valid Email");
-                }
+                  if (!isValidEmail(registerdto.Email.ToLower()))
+                   {
+                      return BadRequest("Not Valid Email");
+                  }
                 if (await checkEmail(registerdto.Email.ToLower()))
                 {
                     return BadRequest("Email is Taken");
@@ -57,7 +60,7 @@ namespace MoviesApi.Controllers
                     UserName = registerdto.userName,
                     Email = registerdto.Email
                 };
-                var result = await _userManager.CreateAsync(user, registerdto.PasswordHash);
+                var result = await _userManager.CreateAsync(user, registerdto.Password);
 
                 if (result.Succeeded)
                 {
@@ -97,6 +100,35 @@ namespace MoviesApi.Controllers
                 return Ok("Email Address Confirm successfully");
             }
             return BadRequest(result.Errors);
+
+        }
+        [Route("Login")]
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginDto loginDto)
+        {
+            if (loginDto == null)
+            {
+                return NotFound("invalid data");
+            }
+            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            if (user == null)
+            {
+                return NotFound("invalid EmailAddress");
+            }
+            if (!user.EmailConfirmed)
+            {
+                return Unauthorized("Email is not confirmed yet");
+            }
+            var result = await _signInManager.PasswordSignInAsync(user, loginDto.Password, loginDto.RemmberMe, true);
+            if (result.Succeeded)
+            {
+                return Ok("Login Success");
+            }
+            if(result.IsLockedOut){
+                
+                return Unauthorized("UserAccount is Locked for 15 minutes");
+            }
+            return NoContent();
 
         }
 

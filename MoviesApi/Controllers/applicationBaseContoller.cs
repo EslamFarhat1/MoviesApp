@@ -6,6 +6,6 @@ namespace MoviesApi.Controllers
     [Route("[controller]")]
     public class applicationBaseContoller:ControllerBase
     {
-        
+       
     }
 }

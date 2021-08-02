@@ -17,13 +17,16 @@ namespace MoviesApi.Services
         public  async Task<bool> SendMail(string userName, string Email, string plainTextContent,
                 string htmlContent, string subject)
         {
-            var apiKey = Config["ApiKey"];
+            var apiKey = Config["ExternalProviders:SendGrid:ApiKey"];
+            var senderEmail=Config["ExternalProviders:SendGrid:SenderEmail"];
+            var senderName=Config["ExternalProviders:SendGrid:SenderName"];
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("testExample@test.com", "test email");
+             var from = new EmailAddress(senderEmail, senderName);
             var to = new EmailAddress(Email, userName);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
             var response = await client.SendEmailAsync(msg);
             return await Task.FromResult(true);
         }
+      
     }
 }

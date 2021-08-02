@@ -41,6 +41,9 @@ namespace MoviesApi
                     option.Password.RequiredUniqueChars=1;
                     option.Password.RequireUppercase=true;
                     option.Password.RequiredLength=6;
+                    option.SignIn.RequireConfirmedEmail=true;
+                    option.Lockout.MaxFailedAccessAttempts=5; //default 5
+                    option.Lockout.DefaultLockoutTimeSpan=TimeSpan.FromMinutes(15);
 
                 }
             ).AddEntityFrameworkStores<DataContext>().AddDefaultTokenProviders();
